@@ -1,16 +1,14 @@
 <?php
 /**
  * @package    FrameworkOnFramework
- * @copyright  Copyright (C) 2010 - 2013 Akeeba Ltd. All rights reserved.
+ * @subpackage form
+ * @copyright   Copyright (C) 2010 - 2015 Nicholas K. Dionysopoulos / Akeeba Ltd. All rights reserved.
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 // Protect from unauthorized access
-defined('_JEXEC') or die;
+defined('FOF_INCLUDED') or die;
 
-if (!class_exists('JFormFieldList'))
-{
-	require_once JPATH_LIBRARIES . '/joomla/form/fields/list.php';
-}
+JFormHelper::loadFieldClass('list');
 
 /**
  * Form Field class for FOF
@@ -26,10 +24,10 @@ class FOFFormFieldComponents extends JFormFieldList implements FOFFormField
 	protected $repeatable;
 
 	public $client_ids = null;
-	
+
 	/** @var   FOFTable  The item being rendered in a repeatable form field */
 	public $item;
-	
+
 	/** @var int A monotonically increasing number, denoting the row number in a repeatable view */
 	public $rowid;
 
@@ -61,7 +59,7 @@ class FOFFormFieldComponents extends JFormFieldList implements FOFFormField
 					$this->repeatable = $this->getRepeatable();
 				}
 
-				return $this->static;
+				return $this->repeatable;
 				break;
 
 			default:
@@ -116,7 +114,7 @@ class FOFFormFieldComponents extends JFormFieldList implements FOFFormField
 	 */
 	protected function getOptions()
 	{
-		$db = JFactory::getDbo();
+		$db = FOFPlatform::getInstance()->getDbo();
 
 		// Check for client_ids override
 		if ($this->client_ids !== null)
@@ -199,6 +197,8 @@ class FOFFormFieldComponents extends JFormFieldList implements FOFFormField
 	 */
 	public function translate($item, $type)
 	{
+        $platform = FOFPlatform::getInstance();
+
 		// Map the manifest cache to $item. This is needed to get the name from the
 		// manifest_cache and NOT from the name column, else some JText::_() translations fails.
 		$mData = json_decode($item->manifest_cache);
@@ -217,14 +217,14 @@ class FOFFormFieldComponents extends JFormFieldList implements FOFFormField
 			}
 		}
 
-		$lang = JFactory::getLanguage();
+		$lang = $platform->getLanguage();
 
 		switch ($type)
 		{
 			case 'component':
 				$source = JPATH_ADMINISTRATOR . '/components/' . $item->element;
-				$lang->load("$item->element.sys", JPATH_ADMINISTRATOR, null, false, true)
-					||	$lang->load("$item->element.sys", $source, null, false, true)
+				$lang->load("$item->element.sys", JPATH_ADMINISTRATOR, null, false, false)
+					||	$lang->load("$item->element.sys", $source, null, false, false)
 					||	$lang->load("$item->element.sys", JPATH_ADMINISTRATOR, $lang->getDefault(), false, false)
 					||	$lang->load("$item->element.sys", $source, $lang->getDefault(), false, false);
 				break;

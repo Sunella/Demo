@@ -3,52 +3,69 @@
  * @package     Joomla.Platform
  * @subpackage  HTTP
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2015 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Registry\Registry;
+
 /**
  * HTTP factory class.
  *
- * @package     Joomla.Platform
- * @subpackage  HTTP
- * @since       12.1
+ * @since  12.1
  */
 class JHttpFactory
 {
 	/**
 	 * method to receive Http instance.
 	 *
-	 * @param   JRegistry  $options   Client options object.
-	 * @param   mixed      $adapters  Adapter (string) or queue of adapters (array) to use for communication.
+	 * @param   Registry  $options   Client options object.
+	 * @param   mixed     $adapters  Adapter (string) or queue of adapters (array) to use for communication.
 	 *
 	 * @return  JHttp      Joomla Http class
 	 *
+	 * @throws  RuntimeException
+	 *
 	 * @since   12.1
 	 */
-	public static function getHttp(JRegistry $options = null, $adapters = null)
+	public static function getHttp(Registry $options = null, $adapters = null)
 	{
 		if (empty($options))
 		{
-			$options = new JRegistry;
+			$options = new Registry;
 		}
 
-		return new JHttp($options, self::getAvailableDriver($options, $adapters));
+		if (empty($adapters))
+		{
+			$config = JFactory::getConfig();
+
+			if ($config->get('proxy_enable'))
+			{
+				$adapters = 'curl';
+			}
+		}
+
+		if (!$driver = self::getAvailableDriver($options, $adapters))
+		{
+			throw new RuntimeException('No transport driver available.');
+		}
+
+		return new JHttp($options, $driver);
 	}
 
 	/**
 	 * Finds an available http transport object for communication
 	 *
-	 * @param   JRegistry  $options  Option for creating http transport object
-	 * @param   mixed      $default  Adapter (string) or queue of adapters (array) to use
+	 * @param   Registry  $options  Option for creating http transport object
+	 * @param   mixed     $default  Adapter (string) or queue of adapters (array) to use
 	 *
 	 * @return  JHttpTransport Interface sub-class
 	 *
 	 * @since   12.1
 	 */
-	public static function getAvailableDriver(JRegistry $options, $default = null)
+	public static function getAvailableDriver(Registry $options, $default = null)
 	{
 		if (is_null($default))
 		{
@@ -70,7 +87,7 @@ class JHttpFactory
 		{
 			$class = 'JHttpTransport' . ucfirst($adapter);
 
-			if ($class::isSupported())
+			if (class_exists($class) && $class::isSupported())
 			{
 				return new $class($options);
 			}
@@ -91,16 +108,26 @@ class JHttpFactory
 		$names = array();
 		$iterator = new DirectoryIterator(__DIR__ . '/transport');
 
+		/* @type  $file  DirectoryIterator */
 		foreach ($iterator as $file)
 		{
 			$fileName = $file->getFilename();
 
 			// Only load for php files.
-			// Note: DirectoryIterator::getExtension only available PHP >= 5.3.6
-			if ($file->isFile() && substr($fileName, strrpos($fileName, '.') + 1) == 'php')
+			if ($file->isFile() && $file->getExtension() == 'php')
 			{
 				$names[] = substr($fileName, 0, strrpos($fileName, '.'));
 			}
+		}
+
+		// Keep alphabetical order across all environments
+		sort($names);
+
+		// If curl is available set it to the first position
+		if ($key = array_search('curl', $names))
+		{
+			unset($names[$key]);
+			array_unshift($names, 'curl');
 		}
 
 		return $names;

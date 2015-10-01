@@ -3,7 +3,7 @@
  * @package     Joomla.Platform
  * @subpackage  Crypt
  *
- * @copyright   Copyright (C) 2005 - 2011 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2015 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
@@ -12,9 +12,7 @@ defined('JPATH_PLATFORM') or die;
 /**
  * JCrypt cipher for mcrypt algorithm encryption, decryption and key generation.
  *
- * @package     Joomla.Platform
- * @subpackage  Crypt
- * @since       12.1
+ * @since  12.1
  */
 abstract class JCryptCipherMcrypt implements JCryptCipher
 {
@@ -129,7 +127,7 @@ abstract class JCryptCipherMcrypt implements JCryptCipher
 		}
 
 		// Generate the derived key.
-		$key->private = $this->pbkdf2($password, $salt, mcrypt_get_key_size($this->type, $this->mode));
+		$key->private = $this->pbkdf2($options['password'], $salt, mcrypt_get_key_size($this->type, $this->mode));
 
 		return $key;
 	}

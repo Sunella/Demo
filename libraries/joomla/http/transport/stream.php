@@ -3,23 +3,23 @@
  * @package     Joomla.Platform
  * @subpackage  HTTP
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2015 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Registry\Registry;
+
 /**
  * HTTP transport class for using PHP streams.
  *
- * @package     Joomla.Platform
- * @subpackage  HTTP
- * @since       11.3
+ * @since  11.3
  */
 class JHttpTransportStream implements JHttpTransport
 {
 	/**
-	 * @var    JRegistry  The client options.
+	 * @var    Registry  The client options.
 	 * @since  11.3
 	 */
 	protected $options;
@@ -27,23 +27,23 @@ class JHttpTransportStream implements JHttpTransport
 	/**
 	 * Constructor.
 	 *
-	 * @param   JRegistry  $options  Client options object.
+	 * @param   Registry  $options  Client options object.
 	 *
 	 * @since   11.3
 	 * @throws  RuntimeException
 	 */
-	public function __construct(JRegistry $options)
+	public function __construct(Registry $options)
 	{
-		// Verify that fopen() is available.
-		if (!self::isSupported())
-		{
-			throw new RuntimeException('Cannot use a stream transport when fopen() is not available.');
-		}
-
 		// Verify that URLs can be used with fopen();
 		if (!ini_get('allow_url_fopen'))
 		{
 			throw new RuntimeException('Cannot use a stream transport when "allow_url_fopen" is disabled.');
+		}
+
+		// Verify that fopen() is available.
+		if (!self::isSupported())
+		{
+			throw new RuntimeException('Cannot use a stream transport when fopen() is not available or "allow_url_fopen" is disabled.');
 		}
 
 		$this->options = $options;
@@ -125,7 +125,16 @@ class JHttpTransportStream implements JHttpTransport
 		$options['follow_location'] = (int) $this->options->get('follow_location', 1);
 
 		// Create the stream context for the request.
-		$context = stream_context_create(array('http' => $options));
+		$context = stream_context_create(
+			array(
+				'http' => $options,
+				'ssl' => array(
+					'verify_peer'   => true,
+					'cafile'        => __DIR__ . '/cacert.pem',
+					'verify_depth'  => 5,
+				)
+			)
+		);
 
 		// Capture PHP errors
 		$php_errormsg = '';
@@ -175,7 +184,6 @@ class JHttpTransportStream implements JHttpTransport
 		}
 
 		return $this->getResponse($headers, $content);
-
 	}
 
 	/**
@@ -231,6 +239,6 @@ class JHttpTransportStream implements JHttpTransport
 	 */
 	public static function isSupported()
 	{
-		return function_exists('fopen') && is_callable('fopen');
+		return function_exists('fopen') && is_callable('fopen') && ini_get('allow_url_fopen');
 	}
 }

@@ -3,7 +3,7 @@
  * @package     Joomla.Libraries
  * @subpackage  Application
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2015 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
@@ -12,9 +12,7 @@ defined('JPATH_PLATFORM') or die;
 /**
  * Application helper functions
  *
- * @package     Joomla.Libraries
- * @subpackage  Application
- * @since       1.5
+ * @since  1.5
  */
 class JApplicationHelper
 {
@@ -53,6 +51,7 @@ class JApplicationHelper
 		}
 
 		$input->set('option', $option);
+
 		return $option;
 	}
 
@@ -211,6 +210,7 @@ class JApplicationHelper
 	public static function parseXMLInstallFile($path)
 	{
 		JLog::add('JApplicationHelper::parseXMLInstallFile is deprecated. Use JInstaller::parseXMLInstallFile instead.', JLog::WARNING, 'deprecated');
+
 		return JInstaller::parseXMLInstallFile($path);
 	}
 
@@ -246,6 +246,7 @@ class JApplicationHelper
 		if ($xml->getName() != 'metafile')
 		{
 			unset($xml);
+
 			return false;
 		}
 

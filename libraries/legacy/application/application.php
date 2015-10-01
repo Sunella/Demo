@@ -3,11 +3,13 @@
  * @package     Joomla.Legacy
  * @subpackage  Application
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2015 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
 defined('JPATH_PLATFORM') or die;
+
+use Joomla\Registry\Registry;
 
 JLog::add('JApplication is deprecated.', JLog::WARNING, 'deprecated');
 
@@ -18,8 +20,6 @@ JLog::add('JApplication is deprecated.', JLog::WARNING, 'deprecated');
  * supporting API functions. Derived clases should supply the route(), dispatch()
  * and render() functions.
  *
- * @package     Joomla.Legacy
- * @subpackage  Application
  * @since       11.1
  * @deprecated  4.0  Use JApplicationCms instead unless specified otherwise
  */
@@ -92,14 +92,6 @@ class JApplication extends JApplicationBase
 	 * @deprecated  4.0
 	 */
 	protected static $instances = array();
-
-	/**
-	 * @var    boolean  Indicates that strong encryption should be used.
-	 * @since  3.2
-	 * @note   Default has been changed as of 3.2. If salted md5 is required it must be explictly set.
-	 * @deprecated  4.0
-	 */
-	protected $useStrongEncryption = false;
 
 	/**
 	 * Class constructor.
@@ -219,18 +211,6 @@ class JApplication extends JApplicationBase
 		}
 
 		$config->set('editor', $editor);
-
-		// Set the encryption to use. The availability of strong encryption must always be checked separately.
-		// Use JCrypt::hasStrongPasswordSupport() to check PHP for this support.
-		if (JPluginHelper::isEnabled('user', 'joomla'))
-		{
-			$userPlugin = JPluginHelper::getPlugin('user', 'joomla');
-			$userPluginParams = new JRegistry;
-			$userPluginParams->loadString($userPlugin->params);
-			$useStrongEncryption = $userPluginParams->get('strong_passwords', 0);
-
-			$config->set('useStrongEncryption', $useStrongEncryption);
-		}
 
 		// Trigger the onAfterInitialise event.
 		JPluginHelper::importPlugin('system');
@@ -639,6 +619,8 @@ class JApplication extends JApplicationBase
 		// Get the global JAuthentication object.
 		jimport('joomla.user.authentication');
 
+		JPluginHelper::importPlugin('user');
+
 		$authenticate = JAuthentication::getInstance();
 		$response = $authenticate->authenticate($credentials, $options);
 
@@ -806,7 +788,7 @@ class JApplication extends JApplicationBase
 		$template = new stdClass;
 
 		$template->template = 'system';
-		$template->params   = new JRegistry;
+		$template->params   = new Registry;
 
 		if ($params)
 		{
@@ -827,7 +809,7 @@ class JApplication extends JApplicationBase
 	 * @since   11.1
 	 * @deprecated  4.0
 	 */
-	static public function getRouter($name = null, array $options = array())
+	public static function getRouter($name = null, array $options = array())
 	{
 		if (!isset($name))
 		{
@@ -859,7 +841,7 @@ class JApplication extends JApplicationBase
 	 * @since   11.1
 	 * @deprecated  4.0  Use JApplicationHelper::stringURLSafe instead
 	 */
-	static public function stringURLSafe($string)
+	public static function stringURLSafe($string)
 	{
 		return JApplicationHelper::stringURLSafe($string);
 	}
@@ -1117,7 +1099,7 @@ class JApplication extends JApplicationBase
 
 		if ($session->isNew())
 		{
-			$session->set('registry', new JRegistry('session'));
+			$session->set('registry', new Registry('session'));
 			$session->set('user', new JUser);
 		}
 	}
@@ -1169,7 +1151,7 @@ class JApplication extends JApplicationBase
 	 * @since   11.1
 	 * @deprecated  13.3 (Platform) & 4.0 (CMS) Use the IS_WIN constant instead.
 	 */
-	public static function isWinOS()
+	public static function isWinOs()
 	{
 		JLog::add('JApplication::isWinOS() is deprecated. Use the IS_WIN constant instead.', JLog::WARNING, 'deprecated');
 

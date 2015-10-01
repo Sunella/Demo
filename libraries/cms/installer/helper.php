@@ -3,7 +3,7 @@
  * @package     Joomla.Libraries
  * @subpackage  Installer
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2015 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
@@ -16,9 +16,7 @@ jimport('joomla.filesystem.path');
 /**
  * Installer helper class
  *
- * @package     Joomla.Libraries
- * @subpackage  Installer
- * @since       3.1
+ * @since  3.1
  */
 abstract class JInstallerHelper
 {
@@ -26,7 +24,7 @@ abstract class JInstallerHelper
 	 * Downloads a package
 	 *
 	 * @param   string  $url     URL of file to download
-	 * @param   string  $target  Download target filename [optional]
+	 * @param   mixed   $target  Download target filename or false to get the filename from the URL
 	 *
 	 * @return  mixed  Path to downloaded package or boolean false on failure
 	 *
@@ -45,7 +43,23 @@ abstract class JInstallerHelper
 		ini_set('user_agent', $version->getUserAgent('Installer'));
 
 		$http = JHttpFactory::getHttp();
-		$response = $http->get($url);
+
+		// Load installer plugins, and allow url and headers modification
+		$headers = array();
+		JPluginHelper::importPlugin('installer');
+		$dispatcher = JEventDispatcher::getInstance();
+		$results = $dispatcher->trigger('onInstallerBeforePackageDownload', array(&$url, &$headers));
+
+		try
+		{
+			$response = $http->get($url, $headers);
+		}
+		catch (Exception $exception)
+		{
+			JLog::add(JText::sprintf('JLIB_INSTALLER_ERROR_DOWNLOAD_SERVER_CONNECT', $exception->getMessage()), JLog::WARNING, 'jerror');
+
+			return false;
+		}
 
 		if (302 == $response->code && isset($response->headers['Location']))
 		{
@@ -58,16 +72,17 @@ abstract class JInstallerHelper
 			return false;
 		}
 
-		if (isset($response->headers['Content-Disposition']))
+		// Parse the Content-Disposition header to get the file name
+		if (isset($response->headers['Content-Disposition'])
+			&& preg_match("/\s*filename\s?=\s?(.*)/", $response->headers['Content-Disposition'], $parts))
 		{
-			$contentfilename = explode("\"", $response->headers['Content-Disposition']);
-			$target = $contentfilename[1];
+			$target = trim(rtrim($parts[1], ";"), '"');
 		}
 
 		// Set the target path if not given
 		if (!$target)
 		{
-			$target = $config->get('tmp_path') . '/' . self::getFilenameFromURL($url);
+			$target = $config->get('tmp_path') . '/' . self::getFilenameFromUrl($url);
 		}
 		else
 		{
@@ -113,16 +128,31 @@ abstract class JInstallerHelper
 		// Do the unpacking of the archive
 		try
 		{
-			JArchive::extract($archivename, $extractdir);
+			$extract = JArchive::extract($archivename, $extractdir);
 		}
 		catch (Exception $e)
 		{
 			if ($alwaysReturnArray)
 			{
-				$retval['extractdir'] = null;
-				$retval['packagefile'] = $archivename;
-				$retval['type'] = false;
-				return $retval;
+				return array(
+					'extractdir'  => null,
+					'packagefile' => $archivename,
+					'type'        => false
+				);
+			}
+
+			return false;
+		}
+
+		if (!$extract)
+		{
+			if ($alwaysReturnArray)
+			{
+				return array(
+					'extractdir'  => null,
+					'packagefile' => $archivename,
+					'type'        => false
+				);
 			}
 
 			return false;
@@ -235,7 +265,7 @@ abstract class JInstallerHelper
 	 *
 	 * @since   3.1
 	 */
-	public static function getFilenameFromURL($url)
+	public static function getFilenameFromUrl($url)
 	{
 		if (is_string($url))
 		{
@@ -243,6 +273,7 @@ abstract class JInstallerHelper
 
 			return $parts[count($parts) - 1];
 		}
+
 		return false;
 	}
 
