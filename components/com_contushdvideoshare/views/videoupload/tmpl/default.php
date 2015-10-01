@@ -345,7 +345,7 @@ if ($user->get('id') != '')
 						</div>
 					</td></tr>
 				<tr id="ffmpeg_disable_new3" name="ffmpeg_disable_new1"><td class="form-label">
-					<?php echo JText::_('HDVS_UPLOAD_THUMB_IMAGE'); ?><span class="star">*</span></td><td>
+					<?php echo JText::_('HDVS_UPLOAD_THUMB_IMAGE'); ?></td><td>
 						<div id="f3-upload-form" >
 							<form name="thumbimageform" method="post" enctype="multipart/form-data" >
 								<input type="file" name="myfile"  onchange="enableUpload(this.form.name);" />

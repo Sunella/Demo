@@ -328,7 +328,8 @@ class Modelcontushdvideosharevideoupload extends ContushdvideoshareModel
 
 				// Getting Image path
 				$img = JRequest::getVar('thumburl', '', 'post', 'string');
-				$uploadFile = JRequest::getVar('thumburl', null, 'files', 'array');
+				//$uploadFile = JRequest::getVar('thumburl', null, 'files', 'array');
+				$uploadFile = JRequest::getVar('thumburl', '', 'files', 'array');
 
 				if ($uploadFile['name'] != '')
 				{

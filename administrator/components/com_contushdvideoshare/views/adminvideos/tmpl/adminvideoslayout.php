@@ -531,7 +531,7 @@ if (isset($player_values['licensekey']) && $player_values['licensekey'] != '')
 							<tr>
 								<td>
 									<img id="f2-upload-image" style="float: left;"
-										 src="components/com_contushdvideoshare/images/empty.gif"
+										 src="components/com_contushdvideoshare/images/commentloading.gif"
 										 alt="Uploading" />
 								</td>
 								<td><span style="float: left; clear:none;font-weight: bold;" id="f2-upload-filename">&nbsp;</span></td>
@@ -550,7 +550,7 @@ if (isset($player_values['licensekey']) && $player_values['licensekey'] != '')
 					</div>
 				</td></tr>
 			<tr id="ffmpeg_disable_new3" name="ffmpeg_disable_new3">
-				<td><?php echo JHTML::tooltip('Select thumb image to upload', 'Upload Thumb Image', '', 'Upload Thumb Image');?></td>
+				<td><?php echo JHTML::tooltip('Select thumb image to upload', 'Upload Thumb Image', '', 'Upload Thumb Image(optional)');?></td>
 				<td>
 					<div id="f3-upload-form" >
 						<form name="thumbimageform" method="post" enctype="multipart/form-data" >
@@ -583,7 +583,7 @@ if (isset($player_values['licensekey']) && $player_values['licensekey'] != '')
 							<tr>
 								<td>
 									<img id="f3-upload-image" style="float: left;"
-										 src="components/com_contushdvideoshare/images/empty.gif"
+										 src="components/com_contushdvideoshare/images/commentloading.gif"
 										 alt="Uploading" />
 								</td>
 								<td><span style="float: left; clear:none;font-weight: bold;" id="f3-upload-filename">&nbsp;</span></td>
