@@ -95,7 +95,7 @@ function videoupload()
 	if(document.getElementById("thumbimageformval").value==""&&document.getElementById("seltype").value==1)/*changed to be an optional field*/{
 		//alert("Please Select Thumb Image");
 		//document.getElementById("thumbimageformval").focus();
-		document.getElementById("thumbimageformval").value="Capture.JPG";
+		document.getElementById("thumbimageformval").value="30258.jpg";
 		return false;
 		}
 		
